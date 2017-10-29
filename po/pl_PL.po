@@ -1,7 +1,7 @@
 # VDR plugin language source file.
 # Copyright (C) 2007-2017 Rolf Ahrenberg
-# This file is distributed under the same license as the satip package.
-# Gabriel Bonich, 2014-2017
+# This file is distributed under the same license as the vdr-satip package.
+# Tomasz Maciej Nowak, 2017
 #
 msgid ""
 msgstr ""
@@ -9,12 +9,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: <see README>\n"
 "POT-Creation-Date: 2017-08-15 08:15+0300\n"
 "PO-Revision-Date: 2017-08-15 08:15+0300\n"
-"Last-Translator: Gabriel Bonich <gbonich@gmail.com>\n"
-"Language-Team: Catalan <vdr@linuxtv.org>\n"
-"Language: ca\n"
+"Last-Translator: Tomasz Maciej Nowak <tomek_n@o2.pl>\n"
+"Language-Team: Polish <vdr@linuxtv.org>\n"
+"Language: pl_PL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.11\n"
 
 msgid "PAT (0x00)"
 msgstr "PAT (0x00)"
@@ -32,58 +33,58 @@ msgid "TDT (0x70)"
 msgstr "TDT (0x70)"
 
 msgid "SAT>IP information not available!"
-msgstr "SAT>IP Informació no disponible!"
+msgstr "Informacja o SAT>IP niedostępna!"
 
 msgid "SAT>IP Devices"
-msgstr "SAT>IP Dispositius"
+msgstr "Urządzenia SAT>IP"
 
 msgid "SAT>IP Server"
-msgstr "SAT>IP Server"
+msgstr "Serwer SAT>IP"
 
 msgid "Address"
-msgstr "Adressa"
+msgstr "Adres"
 
 msgid "Model"
 msgstr "Model"
 
 msgid "Description"
-msgstr "Descripció"
+msgstr "Opis"
 
 msgid "CI extension"
-msgstr "Extensió CI"
+msgstr "Rozszerzenie CI"
 
 msgid "Creation date"
-msgstr "Creació de data"
+msgstr "Data produkcji"
 
 msgid "SAT>IP Device Status"
-msgstr "SAT>IP Estat Dispositiu"
+msgstr "Status urządzenia SAT>IP"
 
 msgid "SAT>IP Information"
-msgstr "SAT>IP Informació"
+msgstr "SAT>IP - informacje"
 
 msgid "General"
-msgstr "General"
+msgstr "Główne"
 
 msgid "Pids"
-msgstr "Pids"
+msgstr "Pidy"
 
 msgid "Filters"
-msgstr "Filtres"
+msgstr "Filtry"
 
 msgid "Bits/bytes"
-msgstr "Bits/Bytes"
+msgstr "Bity/bajty"
 
 msgid "off"
-msgstr "Apagat"
+msgstr "wyłączone"
 
 msgid "low"
-msgstr "Baix"
+msgstr "niski"
 
 msgid "normal"
-msgstr "Normal"
+msgstr "normalny"
 
 msgid "high"
-msgstr "Alt"
+msgstr "wysoki"
 
 msgid "Unicast"
 msgstr "Unicast"
@@ -92,13 +93,13 @@ msgid "Multicast"
 msgstr "Multicast"
 
 msgid "RTP-over-TCP"
-msgstr "RTP-per sobre-TCP"
+msgstr "RTP-over-TCP"
 
 msgid "Button$Devices"
-msgstr "Dispositius"
+msgstr "Urządzenia"
 
 msgid "Operating mode"
-msgstr "Mode de operació"
+msgstr "Tryb pracy"
 
 msgid ""
 "Define the used operating mode for all SAT>IP devices:\n"
@@ -108,24 +109,24 @@ msgid ""
 "normal - devices are working within normal parameters\n"
 "high - devices are working at the highest priority"
 msgstr ""
-"Defineig la manera de operar els Dispositius SAT>IP:\n"
+"Określa tryb pracy wszystkich urządzeń SAT>IP:\n"
 "\n"
-"Apagat - Dispositius desactivats\n"
-"Baix - Dispositius treballan a baixa prioritat\n"
-"Normal - Dispositius treballan en parametres normals\n"
-"Alta - Dispositius treballan a prioritat Alta"
+"wyłączone - urządzenia są wyłączone\n"
+"niski - urządzenia pracują z najniższym priorytetem\n"
+"normalny - urządzenia pracują z normalnymi parametrami\n"
+"wysoki - urządzenia pracują z najwyższym priorytetem"
 
 msgid "Enable CI extension"
-msgstr "Habilita la extenció CI"
+msgstr "Włącz rozszerzenie CI"
 
 msgid ""
 "Define whether a CI extension shall be used.\n"
 "\n"
 "This setting enables integrated CI/CAM handling found in some SAT>IP hardware (e.g. Digital Devices OctopusNet)."
 msgstr ""
-"Definir si s'utilitzarà una extensió de CI.\n"
+"Określa czy korzystać z rozszerzenia CI.\n"
 "\n"
-"Aquesta configuració permet utilitzar CI/CAM integrat que es troba en alguns equips SAT>IP (ex. Digital Devices OctopusNet)."
+"To ustawienie włącza obsługę dostępnego czytnika CI/CAM w niektórych urządzeniach SAT>IP (np. Digital Devices OctopusNet)."
 
 msgid "CI/CAM"
 msgstr "CI/CAM"
@@ -135,69 +136,71 @@ msgid ""
 "\n"
 "The '---' option lets SAT>IP hardware do the auto-selection."
 msgstr ""
-"Definir quin tipus de CAM vols per a la ranura CI.\n"
+"Określa typ modułu CAM w czytniku CI.\n"
 "\n"
-"L'opció '---' permet l'equip SAT>IP fer la selecció automàtica."
+"Opcja '---' pozwala urządzeniu SAT>IP automatycznie wybrać typ."
 
 msgid "Enable EPG scanning"
-msgstr "Activa Escanneig EPG"
+msgstr "Włącz skanowanie EPG"
 
 msgid ""
 "Define whether the EPG background scanning shall be used.\n"
 "\n"
 "This setting disables the automatic EIT scanning functionality for all SAT>IP devices."
 msgstr ""
-"Definir si s'utilitzarà l'anàlisi en segon pla del EPG.\n"
+"Określa czy przeprowadzać skanowanie EPG w tle.\n"
 "\n"
-"Aquesta configuració desactiva la funcionalitat d'escaneig EIT automàtica per a tots els dispositius SAT>IP."
+"To ustawienie wyłącza funkcję automatycznego skanowania EIT dla wszystkich urządzeń SAT>IP."
 
 msgid "Disabled sources"
-msgstr "Desactiva entrades"
+msgstr "Wyłączone źródła"
 
 msgid "none"
-msgstr "no"
+msgstr "brak"
 
 msgid ""
 "Define number of sources to be disabled.\n"
 "\n"
 "SAT>IP servers might not have all satellite positions available and such sources can be blacklisted here."
 msgstr ""
-"Definir nombre de entrades que es desactiven.\n"
+"Określa liczbę wyłączonych źródeł.\n"
 "\n"
-"SAT>IP els servidors podrien no tenir totes les posicions dels satèl·lits disponibles i aquestes entrades poden ser la llista negra."
+"Serwery SAT>IP mogą nie mieć dostępu do niektórych pozycji satelitarnych, więc tutaj można je wyłączyć."
 
 msgid "Define a source to be blacklisted."
-msgstr "Definir una entrada a la llista negra"
+msgstr "Określ źródła do wyłączenia."
 
 msgid "Disabled filters"
-msgstr "Desactiva filtres"
+msgstr "Wyłączone filtry"
 
 msgid ""
 "Define number of section filters to be disabled.\n"
 "\n"
 "Certain section filters might cause some unwanted behaviour to VDR such as time being falsely synchronized. By blacklisting the filters here, useful section data can be left intact for VDR to process."
 msgstr ""
-"Defineix el numero de filtres de secció que seran deshabilitats.\n"
+"Określa liczbę wyłączonych filtrów sekcji.\n"
 "\n"
-"Alguns filtres de secció podrien provocar un comportament no desitjat a VDR, com sincronitzar malament l'hora. Posant aquests filtres a la llista negra, aqui, la secció de dades útil pot ser deixada intacta pel seu procès en el VDR."
+"Niektóre filtry sekcji mogą powodować niezamierzone efekty w VDR, takie jak zły czas synchronizacji. Poprzez wyłączenie niektórych filtrów, użyteczne dane sekcji będą dostępne do przetworzenia dla VDR."
 
 msgid "Filter"
-msgstr "Filtra"
+msgstr "Filtr"
 
 msgid "Define an ill-behaving filter to be blacklisted."
-msgstr "Definir un filtre mal comportar a la llista negra."
+msgstr "Określa filtry powodujące zakłócenia, które mają być wyłączone."
 
 msgid "Transport mode"
-msgstr "Tipus de Transmissió"
+msgstr "Tryb"
 
 msgid ""
 "Define which transport mode shall be used.\n"
 "\n"
 "Unicast, Multicast, RTP-over-TCP"
 msgstr ""
+"Określa tryb transmisji.\n"
+"Unicast, Multicast, RTP-over-TCP."
 
 msgid "Active SAT>IP servers:"
-msgstr "Activa SAT>IP servers:"
+msgstr "Aktywne serwery SAT>IP:"
 
 msgid "Help"
-msgstr "Ajuda"
+msgstr "Pomoc"

@@ -80,8 +80,9 @@ bool cSatipFrontends::Detach(int deviceIdP, int transponderP)
 
 // --- cSatipServer -----------------------------------------------------------
 
-cSatipServer::cSatipServer(const char *addressP, const int portP, const char *modelP, const char *filtersP, const char *descriptionP, const int quirkP)
-: addressM((addressP && *addressP) ? addressP : "0.0.0.0"),
+cSatipServer::cSatipServer(const char *srcAddressP, const char *addressP, const int portP, const char *modelP, const char *filtersP, const char *descriptionP, const int quirkP)
+: srcAddressM((srcAddressP && *srcAddressP) ? srcAddressP : ""),
+  addressM((addressP && *addressP) ? addressP : "0.0.0.0"),
   modelM((modelP && *modelP) ? modelP : "DVBS-1"),
   filtersM((filtersP && *filtersP) ? filtersP : ""),
   descriptionM(!isempty(descriptionP) ? descriptionP : "MyBrokenHardware"),
@@ -116,42 +117,43 @@ cSatipServer::cSatipServer(const char *addressP, const int portP, const char *mo
      // These devices contain a session id bug:
      // Inverto Airscreen Server IDL 400 ?
      // Elgato EyeTV Netstream 4Sat ?
-     if (strstr(*descriptionM, "GSSBOX") ||             // Grundig Sat Systems GSS.box DSI 400
-         strstr(*descriptionM, "DIGIBIT") ||            // Telestar Digibit R1
-         strstr(*descriptionM, "Triax SatIP Converter") // Triax TSS 400
+     if (strstr(*descriptionM, "GSSBOX") ||                    // Grundig Sat Systems GSS.box DSI 400
+         strstr(*descriptionM, "DIGIBIT") ||                   // Telestar Digibit R1
+         strstr(*descriptionM, "Triax SatIP Converter")        // Triax TSS 400
         )
         quirkM |= eSatipQuirkSessionId;
      // These devices contain support for RTP over TCP:
-     if (strstr(*descriptionM, "minisatip") ||          // minisatip server
-         strstr(*descriptionM, "DVBViewer") ||          // DVBViewer Media Server
-         strstr(*descriptionM, "GSSBOX") ||             // Grundig Sat Systems GSS.box DSI 400
-         strstr(*descriptionM, "DIGIBIT") ||            // Telestar Digibit R1
-         strstr(*descriptionM, "Triax SatIP Converter") // Triax TSS 400
+     if (strstr(*descriptionM, "minisatip") ||                 // minisatip server
+         strstr(*descriptionM, "DVBViewer")                    // DVBViewer Media Server
         )
         quirkM |= eSatipQuirkRtpOverTcp;
      // These devices contain a play (add/delpids) parameter bug:
-     if (strstr(*descriptionM, "fritzdvbc")             // Fritz!WLAN Repeater DVB-C
+     if (strstr(*descriptionM, "FRITZ!Box 6490 Cable") ||      // FRITZ!Box 6490 Cable
+         strstr(*descriptionM, "FRITZ!WLAN Repeater DVB-C") || // FRITZ!WLAN Repeater DVB-C
+         strstr(*descriptionM, "fritzdvbc")                    // FRITZ!WLAN Repeater DVB-C (old firmware)
         )
         quirkM |= eSatipQuirkPlayPids;
      // These devices contain a frontend locking bug:
-     if (strstr(*descriptionM, "fritzdvbc") ||            // Fritz!WLAN Repeater DVB-C
-         strstr(*descriptionM, "Schwaiger Sat>IP Server") // Schwaiger MS41IP
+     if (strstr(*descriptionM, "FRITZ!Box 6490 Cable") ||      // FRITZ!Box 6490 Cable
+         strstr(*descriptionM, "FRITZ!WLAN Repeater DVB-C") || // FRITZ!WLAN Repeater DVB-C
+         strstr(*descriptionM, "fritzdvbc") ||                 // FRITZ!WLAN Repeater DVB-C (old firmware)
+         strstr(*descriptionM, "Schwaiger Sat>IP Server")      // Schwaiger MS41IP
         )
         quirkM |= eSatipQuirkForceLock;
      // These devices support the X_PMT protocol extension
-     if (strstr(*descriptionM, "OctopusNet") ||         // Digital Devices OctopusNet
-         strstr(*descriptionM, "minisatip")             // minisatip server
+     if (strstr(*descriptionM, "OctopusNet") ||                // Digital Devices OctopusNet
+         strstr(*descriptionM, "minisatip")                    // minisatip server
         )
         quirkM |= eSatipQuirkCiXpmt;
      // These devices support the TNR protocol extension
-     if (strstr(*descriptionM, "DVBViewer")             // DVBViewer Media Server
+     if (strstr(*descriptionM, "DVBViewer")                    // DVBViewer Media Server
         )
         quirkM |= eSatipQuirkCiTnr;
      // These devices don't support auto-detection of pilot tones
-     if (strstr(*descriptionM, "GSSBOX") ||             // Grundig Sat Systems GSS.box DSI 400
-         strstr(*descriptionM, "DIGIBIT") ||            // Telestar Digibit R1
-         strstr(*descriptionM, "Triax SatIP Converter") // Triax TSS 400
-                                                        // Kathrein ExIP 414/E
+     if (strstr(*descriptionM, "GSSBOX") ||                    // Grundig Sat Systems GSS.box DSI 400
+         strstr(*descriptionM, "DIGIBIT") ||                   // Telestar Digibit R1
+         strstr(*descriptionM, "Triax SatIP Converter") ||     // Triax TSS 400
+         strstr(*descriptionM, "KATHREIN SatIP Server")        // Kathrein ExIP 414/E
         )
         quirkM |= eSatipQuirkForcePilot;
      }
@@ -446,6 +448,18 @@ void cSatipServers::Cleanup(uint64_t intervalMsP)
       }
 }
 
+cString cSatipServers::GetSrcAddress(cSatipServer *serverP)
+{
+  cString address = "";
+  for (cSatipServer *s = First(); s; s = Next(s)) {
+      if (s == serverP) {
+         address = s->SrcAddress();
+         break;
+         }
+      }
+  return address;
+}
+
 cString cSatipServers::GetAddress(cSatipServer *serverP)
 {
   cString address = "";
@@ -486,7 +500,10 @@ cString cSatipServers::List(void)
 {
   cString list = "";
   for (cSatipServer *s = First(); s; s = Next(s))
-      list = cString::sprintf("%s%c %s|%s|%s\n", *list, s->IsActive() ? '+' : '-', s->Address(), s->Model(), s->Description());
+      if (isempty(s->SrcAddress()))
+         list = cString::sprintf("%s%c %s|%s|%s\n", *list, s->IsActive() ? '+' : '-', s->Address(), s->Model(), s->Description());
+      else
+         list = cString::sprintf("%s%c %s@%s|%s|%s\n", *list, s->IsActive() ? '+' : '-', s->SrcAddress(), s->Address(), s->Model(), s->Description());
   return list;
 }
 

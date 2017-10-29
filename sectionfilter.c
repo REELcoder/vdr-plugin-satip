@@ -102,8 +102,11 @@ int cSatipSectionFilter::Filter(void)
      if (doneqM && !neq)
         return 0;
 
-     if (ringBufferM && (secLenM > 0))
-        ringBufferM->Put(new cFrame(secBufM, secLenM));
+     if (ringBufferM && (secLenM > 0)) {
+        cFrame* section = new cFrame(secBufM, secLenM);
+        if (!ringBufferM->Put(section))
+           DELETE_POINTER(section);
+        }
      }
   return 0;
 }
@@ -126,7 +129,7 @@ int cSatipSectionFilter::CopyDump(const uint8_t *bufP, uint8_t lenP)
   if (tsFeedpM + lenP > eDmxMaxSectionFeedSize)
      lenP = (uint8_t)(eDmxMaxSectionFeedSize - tsFeedpM);
 
-  if (lenP <= 0)
+  if (lenP == 0)
      return 0;
 
   memcpy(secBufBaseM + tsFeedpM, bufP, lenP);
@@ -141,7 +144,7 @@ int cSatipSectionFilter::CopyDump(const uint8_t *bufP, uint8_t lenP)
 
   for (n = 0; secBufpM + 2 < limit; ++n) {
       uint16_t seclen = GetLength(secBufM);
-      if ((seclen <= 0) || (seclen > eDmxMaxSectionSize) || ((seclen + secBufpM) > limit))
+      if ((seclen > eDmxMaxSectionSize) || ((seclen + secBufpM) > limit))
          return 0;
       secLenM = seclen;
       if (pusiSeenM)
@@ -209,27 +212,28 @@ void cSatipSectionFilter::Process(const uint8_t* dataP)
      }
 }
 
-bool cSatipSectionFilter::Send(void)
+void cSatipSectionFilter::Send(void)
 {
-  bool result = false;
   cFrame *section = ringBufferM->Get();
   if (section) {
      uchar *data = section->Data();
      int count = section->Count();
      if (data && (count > 0) && (socketM[1] >= 0) && (socketM[0] >= 0)) {
-        ssize_t len = send(socketM[1], data, count, MSG_EOR);
-        ERROR_IF(len < 0 && errno != EAGAIN, "send()");
-        if (len > 0) {
-           ringBufferM->Drop(section);
-           result = !!ringBufferM->Available();
+        if (send(socketM[1], data, count, MSG_EOR) > 0) {
            // Update statistics
-           AddSectionStatistic(len, 1);
+           AddSectionStatistic(count, 1);
            }
+        else if (errno != EAGAIN)
+          error("failed to send section data (%i bytes) [device=%d]", count, deviceIndexM);
         }
+     ringBufferM->Drop(section);
      }
-  return result;
 }
 
+int cSatipSectionFilter::Available(void) const
+{
+  return ringBufferM->Available();
+}
 
 cSatipSectionFilterHandler::cSatipSectionFilterHandler(int deviceIndexP, unsigned int bufferLenP)
 : cThread(cString::sprintf("SATIP#%d section handler", deviceIndexP)),
@@ -267,54 +271,73 @@ cSatipSectionFilterHandler::~cSatipSectionFilterHandler()
       Delete(i);
 }
 
+void cSatipSectionFilterHandler::SendAll(void)
+{
+  cMutexLock MutexLock(&mutexM);
+  bool pendingData;
+  do {
+     pendingData = false;
+
+     // zero polling structures
+     memset(pollFdsM, 0, sizeof(pollFdsM));
+
+     // assemble all handlers to poll (use -1 to ignore handlers)
+     for (unsigned int i = 0; i < eMaxSecFilterCount; ++i) {
+         if (filtersM[i] && filtersM[i]->Available() != 0) {
+            pollFdsM[i].fd = filtersM[i]->GetFd();
+            pollFdsM[i].events = POLLOUT;
+            pendingData = true;
+            }
+         else
+            pollFdsM[i].fd = -1;
+         }
+
+     // exit if there isn't any pending data or we time out
+     if (!pendingData || poll(pollFdsM, eMaxSecFilterCount, eSecFilterSendTimeoutMs) <= 0)
+        return;
+
+     // send data (if available)
+     for (unsigned int i = 0; i < eMaxSecFilterCount && pendingData; ++i) {
+         if (pollFdsM[i].revents & POLLOUT)
+            filtersM[i]->Send();
+         }
+  } while (pendingData);
+}
+
 void cSatipSectionFilterHandler::Action(void)
 {
   debug1("%s Entering [device %d]", __PRETTY_FUNCTION__, deviceIndexM);
-  bool processed = false;
   // Do the thread loop
   while (Running()) {
-        // Send demuxed section packets through all filters
-        bool retry = false;
-        mutexM.Lock();
-        for (unsigned int i = 0; i < eMaxSecFilterCount; ++i) {
-            if (filtersM[i] && filtersM[i]->Send())
-               retry = true;
-            }
-        mutexM.Unlock();
-        if (retry)
-           continue;
-        // Read one TS packet
-        if (ringBufferM) {
-           int len = 0;
-           if (processed) {
-              ringBufferM->Del(TS_SIZE);
-              processed = false;
-              }
-           uchar *p = ringBufferM->Get(len);
-           if (p && (len >= TS_SIZE)) {
-              if (*p != TS_SYNC_BYTE) {
-                 for (int i = 1; i < len; ++i) {
-                     if (p[i] == TS_SYNC_BYTE) {
-                        len = i;
-                        break;
+        uchar *p = NULL;
+        int len = 0;
+        // Process all pending TS packets
+        while ((p  = ringBufferM->Get(len)) != NULL) {
+              if (p && (len >= TS_SIZE)) {
+                 if (*p != TS_SYNC_BYTE) {
+                    for (int i = 1; i < len; ++i) {
+                        if (p[i] == TS_SYNC_BYTE) {
+                           len = i;
+                           break;
+                           }
                         }
-                     }
-                 ringBufferM->Del(len);
-                 debug1("%s Skipped %d bytes to sync on TS packet [device %d]", __PRETTY_FUNCTION__, len, deviceIndexM);
-                 continue;
-                 }
-              // Process TS packet through all filters
-              mutexM.Lock();
-              for (unsigned int i = 0; i < eMaxSecFilterCount; ++i) {
-                  if (filtersM[i])
-                     filtersM[i]->Process(p);
-                  }
-              mutexM.Unlock();
-              processed = true;
-              continue;
-              }
-           }
-        cCondWait::SleepMs(10); // to avoid busy loop and reduce cpu load
+                    ringBufferM->Del(len);
+                    debug1("%s Skipped %d bytes to sync on TS packet [device %d]", __PRETTY_FUNCTION__, len, deviceIndexM);
+                    continue;
+                    }
+                    // Process TS packet through all filters
+                    mutexM.Lock();
+                    for (unsigned int i = 0; i < eMaxSecFilterCount; ++i) {
+                        if (filtersM[i])
+                           filtersM[i]->Process(p);
+                        }
+                    mutexM.Unlock();
+                    ringBufferM->Del(TS_SIZE);
+                    }
+                }
+
+        // Send demuxed section packets through all filters
+        SendAll();
         }
   debug1("%s Exiting [device %d]", __PRETTY_FUNCTION__, deviceIndexM);
 }
