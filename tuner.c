@@ -126,6 +126,7 @@ void cSatipTuner::Action(void)
                break;
           case tsTuned:
                debug4("%s: tsTuned [device %d]", __PRETTY_FUNCTION__, deviceIdM);
+               deviceM->SetChannelTuned();
                reConnectM.Set(eConnectTimeoutMs);
                idleCheck.Set(eIdleCheckTimeoutMs);
                lastIdleStatus = false;
@@ -228,6 +229,8 @@ bool cSatipTuner::Connect(void)
         // Flush any old content
         //rtpM.Flush();
         //rtcpM.Flush();
+        if (useTcp)
+           debug1("%s Requesting TCP [device %d]", __PRETTY_FUNCTION__, deviceIdM);
         if (rtspM.Setup(*uri, rtpM.Port(), rtcpM.Port(), useTcp)) {
            keepAliveM.Set(timeoutM);
            if (nextServerM.IsValid()) {
@@ -385,8 +388,8 @@ void cSatipTuner::SetupTransport(int rtpPortP, int rtcpPortP, const char *stream
   // Adapt RTP to any transport media change
   if (multicast != rtpM.IsMulticast() || rtpPortP != rtpM.Port()) {
      cSatipPoller::GetInstance()->Unregister(rtpM);
-     rtpM.Close();
      if (rtpPortP >= 0) {
+        rtpM.Close();
         if (multicast)
            rtpM.OpenMulticast(rtpPortP, streamAddrP, sourceAddrP);
         else
@@ -397,12 +400,12 @@ void cSatipTuner::SetupTransport(int rtpPortP, int rtcpPortP, const char *stream
   // Adapt RTCP to any transport media change
   if (multicast != rtcpM.IsMulticast() || rtcpPortP != rtcpM.Port()) {
      cSatipPoller::GetInstance()->Unregister(rtcpM);
-     rtcpM.Close();
      if (rtcpPortP >= 0) {
+        rtcpM.Close();
         if (multicast)
-           rtcpM.OpenMulticast(rtpPortP, streamAddrP, sourceAddrP);
+           rtcpM.OpenMulticast(rtcpPortP, streamAddrP, sourceAddrP);
         else
-           rtcpM.Open(rtpPortP);
+           rtcpM.Open(rtcpPortP);
         cSatipPoller::GetInstance()->Register(rtcpM);
         }
      }
