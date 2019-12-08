@@ -88,7 +88,8 @@ private:
     eConnectTimeoutMs         = 5000,  // in milliseconds
     eIdleCheckTimeoutMs       = 15000, // in milliseconds
     eTuningTimeoutMs          = 20000, // in milliseconds
-    eMinKeepAliveIntervalMs   = 30000  // in milliseconds
+    eMinKeepAliveIntervalMs   = 30000, // in milliseconds
+    eSetupTimeoutMs           = 2000   // in milliseconds
   };
   enum eTunerState { tsIdle, tsRelease, tsSet, tsTuned, tsLocked };
   enum eStateMode { smInternal, smExternal };
@@ -103,6 +104,7 @@ private:
   cString streamParamM;
   cString tnrParamM;
   int streamPortM;
+  cString lastAddrM;
   cSatipTunerServer currentServerM;
   cSatipTunerServer nextServerM;
   cMutex mutexM;
@@ -110,8 +112,10 @@ private:
   cTimeMs keepAliveM;
   cTimeMs statusUpdateM;
   cTimeMs pidUpdateCacheM;
+  cTimeMs setupTimeoutM;
   cString sessionM;
   eTunerState currentStateM;
+  int setupStateM;
   cVector<eTunerState> internalStateM;
   cVector<eTunerState> externalStateM;
   int timeoutM;
