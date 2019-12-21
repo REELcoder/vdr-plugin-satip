@@ -195,11 +195,9 @@ bool cSatipTuner::Open(void)
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
 
-  info("%s SWITCH_FIX: setupStateM=%d (%ld ms)", __PRETTY_FUNCTION__, setupStateM, setupTimeoutM.Elapsed());
   if ((setupStateM |= 0x02) >= 0x03 && !setupTimeoutM.TimedOut())
       RequestState(tsSet, smExternal);
   setupTimeoutM.Set(eSetupTimeoutMs);
-  info("%s SWITCH_FIX: setupStateM=%d", __PRETTY_FUNCTION__, setupStateM);
 
   // return always true
   return true;
@@ -221,13 +219,7 @@ bool cSatipTuner::Connect(void)
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
 
-  info("%s SWITCH_FIX: setupStateM=%d", __PRETTY_FUNCTION__, setupStateM);
   setupStateM = 0x00;
-  info("%s SWITCH_FIX: setupStateM=%d", __PRETTY_FUNCTION__, setupStateM);
-
-  info("%s SWITCH_FIX: streamAddrM=%s", __PRETTY_FUNCTION__, *streamAddrM);
-  info("%s SWITCH_FIX: streamIdM=%d", __PRETTY_FUNCTION__, streamIdM);
-  info("%s SWITCH_FIX: streamParamM=%s", __PRETTY_FUNCTION__, *streamParamM);
 
   if (!isempty(*streamAddrM)) {
      cString connectionUri = GetBaseUrl(*streamAddrM, streamPortM);
@@ -272,9 +264,6 @@ bool cSatipTuner::Disconnect(void)
 {
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
-
-  info("%s SWITCH_FIX: lastAddrM=%s", __PRETTY_FUNCTION__, *lastAddrM);
-  info("%s SWITCH_FIX: streamIdM=%d", __PRETTY_FUNCTION__, streamIdM);
 
   if (!isempty(*lastAddrM) && (streamIdM >= 0)) {
      cString uri = cString::sprintf("%sstream=%d", *lastAddrM, streamIdM);
@@ -466,11 +455,9 @@ bool cSatipTuner::SetSource(cSatipServer *serverP, const int transponderP, const
         if (nextServerM.IsQuirk(cSatipServer::eSatipQuirkForcePilot) && strstr(parameterP, "msys=dvbs2") && !strstr(parameterP, "plts="))
            streamParamM = rtspM.RtspUnescapeString(*cString::sprintf("%s&plts=on", parameterP));
         // Reconnect
-        info("%s SWITCH_FIX: setupStateM=%d (%ld ms)", __PRETTY_FUNCTION__, setupStateM, setupTimeoutM.Elapsed());
         if ((setupStateM |= 0x01) >= 0x03 && !setupTimeoutM.TimedOut())
             RequestState(tsSet, smExternal);
         setupTimeoutM.Set(eSetupTimeoutMs);
-        info("%s SWITCH_FIX: setupStateM=%d", __PRETTY_FUNCTION__, setupStateM);
         }
      }
   else {
