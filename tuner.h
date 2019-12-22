@@ -115,7 +115,6 @@ private:
   cTimeMs setupTimeoutM;
   cString sessionM;
   eTunerState currentStateM;
-  int setupStateM;
   cVector<eTunerState> internalStateM;
   cVector<eTunerState> externalStateM;
   int timeoutM;

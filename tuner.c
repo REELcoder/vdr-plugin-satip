@@ -38,7 +38,6 @@ cSatipTuner::cSatipTuner(cSatipDeviceIf &deviceP, unsigned int packetLenP)
   setupTimeoutM(-1),
   sessionM(""),
   currentStateM(tsIdle),
-  setupStateM(0),
   internalStateM(),
   externalStateM(),
   timeoutM(eMinKeepAliveIntervalMs),
@@ -120,13 +119,16 @@ void cSatipTuner::Action(void)
                break;
           case tsSet:
                debug4("%s: tsSet [device %d]", __PRETTY_FUNCTION__, deviceIdM);
+               if (!isempty(*lastAddrM)) {
+                   cString connectionUri = GetBaseUrl(*streamAddrM, streamPortM);
+                   if (strcmp(*connectionUri, *lastAddrM))
+                       Disconnect();
+                  }
                if (Connect()) {
                   tuning.Set(eTuningTimeoutMs);
                   RequestState(tsTuned, smInternal);
                   UpdatePids(true);
                   }
-               else
-                  Disconnect();
                break;
           case tsTuned:
                debug4("%s: tsTuned [device %d]", __PRETTY_FUNCTION__, deviceIdM);
@@ -195,10 +197,6 @@ bool cSatipTuner::Open(void)
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
 
-  if ((setupStateM |= 0x02) >= 0x03 && !setupTimeoutM.TimedOut())
-      RequestState(tsSet, smExternal);
-  setupTimeoutM.Set(eSetupTimeoutMs);
-
   // return always true
   return true;
 }
@@ -208,7 +206,8 @@ bool cSatipTuner::Close(void)
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
 
-  RequestState(tsRelease, smExternal);
+  if (setupTimeoutM.TimedOut())
+      RequestState(tsRelease, smExternal);
 
   // return always true
   return true;
@@ -218,8 +217,6 @@ bool cSatipTuner::Connect(void)
 {
   cMutexLock MutexLock(&mutexM);
   debug1("%s [device %d]", __PRETTY_FUNCTION__, deviceIdM);
-
-  setupStateM = 0x00;
 
   if (!isempty(*streamAddrM)) {
      cString connectionUri = GetBaseUrl(*streamAddrM, streamPortM);
@@ -247,7 +244,7 @@ bool cSatipTuner::Connect(void)
               currentServerM = nextServerM;
               nextServerM.Reset();
               }
-	   lastAddrM = connectionUri;
+           lastAddrM = connectionUri;
            currentServerM.Attach();
            return true;
            }
@@ -455,8 +452,7 @@ bool cSatipTuner::SetSource(cSatipServer *serverP, const int transponderP, const
         if (nextServerM.IsQuirk(cSatipServer::eSatipQuirkForcePilot) && strstr(parameterP, "msys=dvbs2") && !strstr(parameterP, "plts="))
            streamParamM = rtspM.RtspUnescapeString(*cString::sprintf("%s&plts=on", parameterP));
         // Reconnect
-        if ((setupStateM |= 0x01) >= 0x03 && !setupTimeoutM.TimedOut())
-            RequestState(tsSet, smExternal);
+        RequestState(tsSet, smExternal);
         setupTimeoutM.Set(eSetupTimeoutMs);
         }
      }
