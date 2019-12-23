@@ -102,9 +102,10 @@ private:
   cSatipRtcp rtcpM;
   cString streamAddrM;
   cString streamParamM;
+  cString lastAddrM;
+  cString lastParamM;
   cString tnrParamM;
   int streamPortM;
-  cString lastAddrM;
   cSatipTunerServer currentServerM;
   cSatipTunerServer nextServerM;
   cMutex mutexM;
