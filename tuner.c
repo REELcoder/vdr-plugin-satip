@@ -223,13 +223,13 @@ bool cSatipTuner::Connect(void)
      if (streamIdM >= 0) {
         if (!strcmp(*streamParamM, *lastParamM)) {
                 debug1("%s Identical parameters [device %d]", __PRETTY_FUNCTION__, deviceIdM);
-		return true;
-	   }
+                return true;
+           }
         cString uri = cString::sprintf("%sstream=%d?%s", *connectionUri, streamIdM, *streamParamM);
         debug1("%s Retuning [device %d]", __PRETTY_FUNCTION__, deviceIdM);
         if (rtspM.Play(*uri)) {
            keepAliveM.Set(timeoutM);
-	   lastParamM = streamParamM;
+           lastParamM = streamParamM;
            return true;
            }
         }
