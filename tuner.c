@@ -221,7 +221,7 @@ bool cSatipTuner::Connect(void)
      tnrParamM = "";
      // Just retune
      if (streamIdM >= 0) {
-        if (!strcmp(*streamParamM, *lastParamM)) {
+        if (!strcmp(*streamParamM, *lastParamM) && hasLockM) {
                 debug1("%s Identical parameters [device %d]", __PRETTY_FUNCTION__, deviceIdM);
                 return true;
            }
@@ -243,6 +243,7 @@ bool cSatipTuner::Connect(void)
            debug1("%s Requesting TCP [device %d]", __PRETTY_FUNCTION__, deviceIdM);
         if (rtspM.Setup(*uri, rtpM.Port(), rtcpM.Port(), useTcp)) {
            keepAliveM.Set(timeoutM);
+           lastParamM = streamParamM;
            if (nextServerM.IsValid()) {
               currentServerM = nextServerM;
               nextServerM.Reset();
@@ -254,6 +255,7 @@ bool cSatipTuner::Connect(void)
         }
      rtspM.Reset();
      streamIdM = -1;
+     lastParamM = "";
      error("Connect failed [device %d]", deviceIdM);
      }
 
@@ -271,6 +273,7 @@ bool cSatipTuner::Disconnect(void)
      // some devices requires a teardown for TCP connection also
      rtspM.Reset();
      streamIdM = -1;
+     lastParamM = "";
      }
 
   // Reset signal parameters
